@@ -210,6 +210,55 @@ public class App {
     }
 
     /**
+     * Gets a single employee by employee number
+     *
+     * @param emp_no the employee number
+     * @return Employee object or null if not found
+     */
+    public Employee getEmployee(int emp_no) {
+        try {
+            Statement stmt = con.createStatement();
+            String strSelect =
+                    "SELECT emp_no, first_name, last_name "
+                            + "FROM employees "
+                            + "WHERE emp_no = " + emp_no;
+            ResultSet rset = stmt.executeQuery(strSelect);
+            if (rset.next()) {
+                Employee emp = new Employee();
+                emp.emp_no = rset.getInt("emp_no");
+                emp.first_name = rset.getString("first_name");
+                emp.last_name = rset.getString("last_name");
+                return emp;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println("Failed to get employee details");
+            return null;
+        }
+    }
+
+    /**
+     * Adds a new employee to the database
+     *
+     * @param emp the employee to add
+     */
+    public void addEmployee(Employee emp) {
+        try {
+            Statement stmt = con.createStatement();
+            String strUpdate =
+                    "INSERT INTO employees (emp_no, first_name, last_name, birth_date, gender, hire_date) " +
+                            "VALUES (" + emp.emp_no + ", '" + emp.first_name + "', '" + emp.last_name + "', " +
+                            "'9999-01-01', 'M', '9999-01-01')";
+            stmt.execute(strUpdate);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println("Failed to add employee");
+        }
+    }
+
+    /**
      * Gets salaries by department name (convenience method)
      *
      * @param dept_name the department name
@@ -292,24 +341,17 @@ public class App {
     }
 
     public static void main(String[] args) {
-        // Create new Application
         App app = new App();
 
-        // Connect to database
         if (args.length < 1) {
             app.connect("localhost:33060", 30000);
         } else {
             app.connect(args[0], Integer.parseInt(args[1]));
         }
 
-        // Get Sales department
         Department dept = app.getDepartment("Sales");
-
         if (dept != null) {
-            // Get employees in Sales department
             ArrayList<Employee> employees = app.getSalariesByDepartment(dept);
-
-            // Print just first 5 employees
             if (employees != null && !employees.isEmpty()) {
                 System.out.println("Sales Department - First 5 employees:");
                 ArrayList<Employee> sample = new ArrayList<>();
@@ -320,8 +362,7 @@ public class App {
             }
         }
 
-        // Disconnect and exit
         app.disconnect();
-        System.out.println("Application finished successfully.");
+        System.out.println("Application finished.");
     }
 }

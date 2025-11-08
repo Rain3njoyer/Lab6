@@ -35,7 +35,16 @@ jobs:
         run: |
           docker build -t database ./db 
           docker run --name employees -dp 33060:3306 database
-          sleep 120
+          # Wait for database to be ready (max 60 seconds)
+          echo "Waiting for database to be ready..."
+          for i in {1..60}; do
+            if docker exec employees mysqladmin ping -h localhost -u root -pexample --silent; then
+              echo "Database is ready!"
+              break
+            fi
+            echo "Waiting... ($i/60)"
+            sleep 1
+          done
           mvn -Dtest=com.napier.devops.AppIntegrationTest test          
           docker stop employees
           docker rm employees

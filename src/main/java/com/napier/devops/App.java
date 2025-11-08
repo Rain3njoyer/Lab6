@@ -302,42 +302,26 @@ public class App {
             app.connect(args[0], Integer.parseInt(args[1]));
         }
 
-        // Get and print a limited sample of employees
-        System.out.println("\n=== Sample Employee Salaries ===");
-        ArrayList<Employee> employees = app.getAllSalaries();
-        if (employees != null && !employees.isEmpty()) {
-            System.out.println("Total employees found: " + employees.size());
-            System.out.println("\nShowing first 10:\n");
-            // Only print first 10 to keep output clean
-            ArrayList<Employee> sample = new ArrayList<>();
-            for (int i = 0; i < Math.min(10, employees.size()); i++) {
-                sample.add(employees.get(i));
+        // Get Sales department
+        Department dept = app.getDepartment("Sales");
+
+        if (dept != null) {
+            // Get employees in Sales department
+            ArrayList<Employee> employees = app.getSalariesByDepartment(dept);
+
+            // Print just first 5 employees
+            if (employees != null && !employees.isEmpty()) {
+                System.out.println("Sales Department - First 5 employees:");
+                ArrayList<Employee> sample = new ArrayList<>();
+                for (int i = 0; i < Math.min(5, employees.size()); i++) {
+                    sample.add(employees.get(i));
+                }
+                app.printSalaries(sample);
             }
-            app.printSalaries(sample);
         }
 
-        // Get salaries by department
-        System.out.println("\n=== Sales Department Salaries ===");
-        ArrayList<Employee> salesEmployees = app.getSalariesByDept("Sales");
-        if (salesEmployees != null && !salesEmployees.isEmpty()) {
-            System.out.println("Total Sales employees: " + salesEmployees.size());
-            System.out.println("\nShowing first 10:\n");
-            ArrayList<Employee> sample = new ArrayList<>();
-            for (int i = 0; i < Math.min(10, salesEmployees.size()); i++) {
-                sample.add(salesEmployees.get(i));
-            }
-            app.printSalaries(sample);
-        }
-
-        // Test displayEmployee if we have data
-        if (employees != null && !employees.isEmpty()) {
-            System.out.println("\n=== Sample Employee Details ===");
-            app.displayEmployee(employees.get(0));
-        }
-
-        // Disconnect from database
-        System.out.println("\nDisconnecting from database...");
+        // Disconnect and exit
         app.disconnect();
-        System.out.println("Done!");
+        System.out.println("Application finished successfully.");
     }
 }

@@ -210,6 +210,20 @@ public class App {
     }
 
     /**
+     * Gets salaries by department name (convenience method)
+     *
+     * @param dept_name the department name
+     * @return list of employees in the department
+     */
+    public ArrayList<Employee> getSalariesByDept(String dept_name) {
+        Department dept = getDepartment(dept_name);
+        if (dept == null) {
+            return null;
+        }
+        return getSalariesByDepartment(dept);
+    }
+
+    /**
      * Prints a list of employees.
      *
      * @param employees The list of employees to print.
@@ -288,59 +302,42 @@ public class App {
             app.connect(args[0], Integer.parseInt(args[1]));
         }
 
-        // Test 1: Get all salaries (this will be a LOT of data - 240k+ rows)
-        System.out.println("\n=== TEST 1: Getting all salaries ===");
+        // Get and print a limited sample of employees
+        System.out.println("\n=== Sample Employee Salaries ===");
         ArrayList<Employee> employees = app.getAllSalaries();
         if (employees != null && !employees.isEmpty()) {
-            System.out.println("Found " + employees.size() + " employees");
-            System.out.println("Printing first 50:");
-            // Only print first 50 to avoid flooding console
-            ArrayList<Employee> first50 = new ArrayList<>();
-            for (int i = 0; i < Math.min(50, employees.size()); i++) {
-                first50.add(employees.get(i));
+            System.out.println("Total employees found: " + employees.size());
+            System.out.println("\nShowing first 10:\n");
+            // Only print first 10 to keep output clean
+            ArrayList<Employee> sample = new ArrayList<>();
+            for (int i = 0; i < Math.min(10, employees.size()); i++) {
+                sample.add(employees.get(i));
             }
-            app.printSalaries(first50);
-        } else {
-            System.out.println("No employees found!");
+            app.printSalaries(sample);
         }
 
-        // Test 2: Get salaries by role (Engineer)
-        System.out.println("\n=== TEST 2: Getting salaries for 'Engineer' ===");
-        ArrayList<Employee> engineers = app.getSalariesByRole("Engineer");
-        if (engineers != null && !engineers.isEmpty()) {
-            System.out.println("Found " + engineers.size() + " engineers");
-            System.out.println("Printing first 20:");
-            ArrayList<Employee> first20 = new ArrayList<>();
-            for (int i = 0; i < Math.min(20, engineers.size()); i++) {
-                first20.add(engineers.get(i));
+        // Get salaries by department
+        System.out.println("\n=== Sales Department Salaries ===");
+        ArrayList<Employee> salesEmployees = app.getSalariesByDept("Sales");
+        if (salesEmployees != null && !salesEmployees.isEmpty()) {
+            System.out.println("Total Sales employees: " + salesEmployees.size());
+            System.out.println("\nShowing first 10:\n");
+            ArrayList<Employee> sample = new ArrayList<>();
+            for (int i = 0; i < Math.min(10, salesEmployees.size()); i++) {
+                sample.add(salesEmployees.get(i));
             }
-            app.printSalaries(first20);
-        } else {
-            System.out.println("No engineers found!");
+            app.printSalaries(sample);
         }
 
-        // Test 3: Get department and employees in that department
-        System.out.println("\n=== TEST 3: Getting Sales department employees ===");
-        Department dept = app.getDepartment("Sales");
-        if (dept != null) {
-            System.out.println("Found department: " + dept.dept_name + " (" + dept.dept_no + ")");
-            ArrayList<Employee> deptEmployees = app.getSalariesByDepartment(dept);
-            if (deptEmployees != null && !deptEmployees.isEmpty()) {
-                System.out.println("Found " + deptEmployees.size() + " employees in Sales");
-                System.out.println("Printing first 20:");
-                ArrayList<Employee> first20 = new ArrayList<>();
-                for (int i = 0; i < Math.min(20, deptEmployees.size()); i++) {
-                    first20.add(deptEmployees.get(i));
-                }
-                app.printSalaries(first20);
-            } else {
-                System.out.println("No employees found in Sales!");
-            }
-        } else {
-            System.out.println("Sales department not found!");
+        // Test displayEmployee if we have data
+        if (employees != null && !employees.isEmpty()) {
+            System.out.println("\n=== Sample Employee Details ===");
+            app.displayEmployee(employees.get(0));
         }
 
         // Disconnect from database
+        System.out.println("\nDisconnecting from database...");
         app.disconnect();
+        System.out.println("Done!");
     }
 }

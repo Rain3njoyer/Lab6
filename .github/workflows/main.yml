@@ -2,7 +2,7 @@ name: A workflow for my Hello World App
 on:
   push:
     branches:
-      - main    # Changed from master to main
+      - main
 
 jobs:
   UnitTests:
@@ -82,10 +82,11 @@ jobs:
           mvn package -DskipTests
           docker compose up --abort-on-container-exit
       - name: Deploy Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: softprops/action-gh-release@v1
+        if: github.ref == 'refs/heads/main'
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          automatic_release_tag: "latest"
-          files: |
-            ./target/*.jar
+          tag_name: latest
+          name: Latest Release
+          files: ./target/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

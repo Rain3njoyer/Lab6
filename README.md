@@ -1,10 +1,14 @@
-[![codecov](https://codecov.io/github/Rain3njoyer/Lab6/graph/badge.svg?token=QUVKHJ7T9S)](https://codecov.io/github/Rain3njoyer/Lab6)
-![GitHub Release](https://img.shields.io/github/v/release/Rain3njoyer/Lab6)
+
 
 # Lab - DevOps Employee Database System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Workflow Status](https://github.com/Rain3njoyer/Lab6/actions/workflows/main.yml/badge.svg)
+![Java](https://img.shields.io/badge/Java-11+-orange)
+![Maven](https://img.shields.io/badge/Maven-3.6+-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+[![codecov](https://codecov.io/github/Rain3njoyer/Lab6/graph/badge.svg?token=QUVKHJ7T9S)](https://codecov.io/github/Rain3njoyer/Lab6)
+![GitHub Release](https://img.shields.io/github/v/release/Rain3njoyer/Lab6)
 
 A DevOps project implementing an employee database management system with automated testing, continuous integration, and Docker containerization. This project covers Labs 3-9 of the DevOps module.
 
@@ -270,7 +274,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-**Your Name** - Rain3njoyer
+**Your Name** - Subhan Sohail
 
 Project Link: [https://github.com/Rain3njoyer/Lab6](https://github.com/Rain3njoyer/Lab6)
 

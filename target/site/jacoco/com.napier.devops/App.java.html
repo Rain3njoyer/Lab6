@@ -1,172 +1,187 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>App.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">devops</a> &gt; <a href="index.source.html" class="el_package">com.napier.devops</a> &gt; <span class="el_source">App.java</span></div><h1>App.java</h1><pre class="source lang-java linenums">package com.napier.devops;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Main application class for Employee Database
  */
-<span class="fc" id="L9">public class App {</span>
+public final class App {
+    /**
+     * Logger for the application
+     */
+<span class="fc" id="L20">    private static final Logger LOGGER = Logger.getLogger(App.class.getName());</span>
+
+    /**
+     * Maximum retry attempts for database connection
+     */
+    private static final int MAX_RETRIES = 10;
+
     /**
      * Connection to MySQL database.
      */
-<span class="fc" id="L13">    private Connection con = null;</span>
+    private transient Connection con;
+
+    /**
+     * Constructor
+     */
+<span class="fc" id="L35">    public App() {</span>
+<span class="fc" id="L36">        this.con = null;</span>
+<span class="fc" id="L37">    }</span>
 
     /**
      * Connect to the MySQL database.
+     * @param location the database location
+     * @param delay the delay in milliseconds before connecting
      */
-    public void connect(String location, int delay) {
+    public void connect(final String location, final int delay) {
         try {
-            // Load Database driver
-<span class="fc" id="L21">            Class.forName(&quot;com.mysql.cj.jdbc.Driver&quot;);</span>
-<span class="nc" id="L22">        } catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L23">            System.out.println(&quot;Could not load SQL driver&quot;);</span>
-<span class="nc" id="L24">            System.exit(-1);</span>
-<span class="fc" id="L25">        }</span>
+<span class="fc" id="L46">            Class.forName(&quot;com.mysql.cj.jdbc.Driver&quot;);</span>
+<span class="nc" id="L47">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L48">            LOGGER.log(Level.SEVERE, &quot;Could not load SQL driver&quot;, e);</span>
+<span class="nc" id="L49">            return;</span>
+<span class="fc" id="L50">        }</span>
 
-<span class="fc" id="L27">        int retries = 10;</span>
-<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        for (int i = 0; i &lt; retries; ++i) {</span>
-<span class="fc" id="L29">            System.out.println(&quot;Connecting to database...&quot;);</span>
+<span class="fc" id="L52">        boolean connected = false;</span>
+<span class="pc bpc" id="L53" title="1 of 4 branches missed.">        for (int i = 0; i &lt; MAX_RETRIES &amp;&amp; !connected; ++i) {</span>
+<span class="fc" id="L54">            LOGGER.log(Level.INFO, &quot;Connecting to database... Attempt {0}&quot;, i);</span>
             try {
-                // Wait a bit for db to start
-<span class="fc" id="L32">                Thread.sleep(delay);</span>
-                // Connect to database
-<span class="fc" id="L34">                con = DriverManager.getConnection(&quot;jdbc:mysql://&quot; + location</span>
+<span class="fc" id="L56">                Thread.sleep(delay);</span>
+<span class="fc" id="L57">                this.con = DriverManager.getConnection(&quot;jdbc:mysql://&quot; + location</span>
                                 + &quot;/employees?allowPublicKeyRetrieval=true&amp;useSSL=false&quot;,
-                        &quot;root&quot;, &quot;college&quot;);  // Changed password
-<span class="fc" id="L37">                System.out.println(&quot;Successfully connected&quot;);</span>
-<span class="fc" id="L38">                break;</span>
-<span class="nc" id="L39">            } catch (SQLException sqle) {</span>
-<span class="nc" id="L40">                System.out.println(&quot;Failed to connect to database attempt &quot; + Integer.toString(i));</span>
-<span class="nc" id="L41">                System.out.println(sqle.getMessage());</span>
-<span class="nc" id="L42">            } catch (InterruptedException ie) {</span>
-<span class="nc" id="L43">                System.out.println(&quot;Thread interrupted? Should not happen.&quot;);</span>
-<span class="nc" id="L44">            }</span>
+                        &quot;root&quot;, &quot;college&quot;);
+<span class="fc" id="L60">                LOGGER.info(&quot;Successfully connected&quot;);</span>
+<span class="fc" id="L61">                connected = true;</span>
+<span class="nc" id="L62">            } catch (SQLException sqle) {</span>
+<span class="nc" id="L63">                LOGGER.log(Level.WARNING, &quot;Failed to connect to database attempt &quot; + i, sqle);</span>
+<span class="nc" id="L64">            } catch (InterruptedException ie) {</span>
+<span class="nc" id="L65">                LOGGER.log(Level.WARNING, &quot;Thread interrupted&quot;, ie);</span>
+<span class="nc" id="L66">                Thread.currentThread().interrupt();</span>
+<span class="pc" id="L67">            }</span>
         }
-<span class="fc" id="L46">    }</span>
+<span class="fc" id="L69">    }</span>
 
     /**
      * Disconnect from the MySQL database.
      */
     public void disconnect() {
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (con != null) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (this.con != null) {</span>
             try {
-                // Close connection
-<span class="nc" id="L55">                con.close();</span>
-<span class="nc" id="L56">            } catch (Exception e) {</span>
-<span class="nc" id="L57">                System.out.println(&quot;Error closing connection to database&quot;);</span>
-<span class="nc" id="L58">            }</span>
+<span class="nc" id="L77">                this.con.close();</span>
+<span class="nc" id="L78">            } catch (SQLException e) {</span>
+<span class="nc" id="L79">                LOGGER.log(Level.SEVERE, &quot;Error closing connection to database&quot;, e);</span>
+<span class="nc" id="L80">            }</span>
         }
-<span class="nc" id="L60">    }</span>
+<span class="nc" id="L82">    }</span>
 
     /**
      * Gets all the current employees and salaries.
      *
-     * @return A list of all employees and salaries, or null if there is an error.
+     * @return A list of all employees and salaries, or empty list if error.
      */
-    public ArrayList&lt;Employee&gt; getAllSalaries() {
-        try {
-            // Create an SQL statement
-<span class="nc" id="L70">            Statement stmt = con.createStatement();</span>
-            // Create string for SQL statement
-<span class="nc" id="L72">            String strSelect =</span>
-                    &quot;SELECT employees.emp_no, employees.first_name, employees.last_name, salaries.salary &quot;
-                            + &quot;FROM employees, salaries &quot;
-                            + &quot;WHERE employees.emp_no = salaries.emp_no &quot;
-                            + &quot;AND salaries.to_date = '9999-01-01' &quot;
-                            + &quot;ORDER BY employees.emp_no ASC&quot;;
-            // Execute SQL statement
-<span class="nc" id="L79">            ResultSet rset = stmt.executeQuery(strSelect);</span>
-            // Extract employee information
-<span class="nc" id="L81">            ArrayList&lt;Employee&gt; employees = new ArrayList&lt;Employee&gt;();</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">            while (rset.next()) {</span>
-<span class="nc" id="L83">                Employee emp = new Employee();</span>
-<span class="nc" id="L84">                emp.emp_no = rset.getInt(&quot;employees.emp_no&quot;);</span>
-<span class="nc" id="L85">                emp.first_name = rset.getString(&quot;employees.first_name&quot;);</span>
-<span class="nc" id="L86">                emp.last_name = rset.getString(&quot;employees.last_name&quot;);</span>
-<span class="nc" id="L87">                emp.salary = rset.getInt(&quot;salaries.salary&quot;);</span>
-<span class="nc" id="L88">                employees.add(emp);</span>
-<span class="nc" id="L89">            }</span>
-<span class="nc" id="L90">            return employees;</span>
-<span class="nc" id="L91">        } catch (Exception e) {</span>
-<span class="nc" id="L92">            System.out.println(e.getMessage());</span>
-<span class="nc" id="L93">            System.out.println(&quot;Failed to get salary details&quot;);</span>
-<span class="nc" id="L94">            return null;</span>
-        }
+    public List&lt;Employee&gt; getAllSalaries() {
+<span class="nc" id="L90">        final String query =</span>
+                &quot;SELECT employees.emp_no, employees.first_name, employees.last_name, salaries.salary &quot;
+                        + &quot;FROM employees, salaries &quot;
+                        + &quot;WHERE employees.emp_no = salaries.emp_no &quot;
+                        + &quot;AND salaries.to_date = '9999-01-01' &quot;
+                        + &quot;ORDER BY employees.emp_no ASC&quot;;
+
+<span class="nc" id="L97">        final List&lt;Employee&gt; employees = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L99">        try (Statement stmt = this.con.createStatement();</span>
+<span class="nc" id="L100">             ResultSet rset = stmt.executeQuery(query)) {</span>
+
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            while (rset.next()) {</span>
+<span class="nc" id="L103">                final Employee emp = createEmployeeFromResultSet(rset,</span>
+                        &quot;employees.emp_no&quot;, &quot;employees.first_name&quot;, &quot;employees.last_name&quot;, &quot;salaries.salary&quot;);
+<span class="nc" id="L105">                employees.add(emp);</span>
+<span class="nc" id="L106">            }</span>
+<span class="nc" id="L107">        } catch (SQLException e) {</span>
+<span class="nc" id="L108">            LOGGER.log(Level.SEVERE, &quot;Failed to get salary details&quot;, e);</span>
+<span class="nc" id="L109">        }</span>
+
+<span class="nc" id="L111">        return employees;</span>
     }
 
     /**
      * Gets salaries for employees with a given role.
-     *
      * @param title the job title to search for
-     * @return A list of all employees with the given title, or null if there is an error.
+     * @return A list of all employees with the given title, or empty list if error.
      */
-    public ArrayList&lt;Employee&gt; getSalariesByRole(String title) {
-        try {
-            // Create an SQL statement
-<span class="nc" id="L107">            Statement stmt = con.createStatement();</span>
-            // Create string for SQL statement
-<span class="nc" id="L109">            String strSelect =</span>
-                    &quot;SELECT employees.emp_no, employees.first_name, employees.last_name, &quot;
-                            + &quot;salaries.salary, titles.title &quot;
-                            + &quot;FROM employees, salaries, titles &quot;
-                            + &quot;WHERE employees.emp_no = salaries.emp_no &quot;
-                            + &quot;AND employees.emp_no = titles.emp_no &quot;
-                            + &quot;AND salaries.to_date = '9999-01-01' &quot;
-                            + &quot;AND titles.to_date = '9999-01-01' &quot;
-                            + &quot;AND titles.title = '&quot; + title + &quot;' &quot;
-                            + &quot;ORDER BY employees.emp_no ASC&quot;;
-            // Execute SQL statement
-<span class="nc" id="L120">            ResultSet rset = stmt.executeQuery(strSelect);</span>
-            // Extract employee information
-<span class="nc" id="L122">            ArrayList&lt;Employee&gt; employees = new ArrayList&lt;Employee&gt;();</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">            while (rset.next()) {</span>
-<span class="nc" id="L124">                Employee emp = new Employee();</span>
-<span class="nc" id="L125">                emp.emp_no = rset.getInt(&quot;employees.emp_no&quot;);</span>
-<span class="nc" id="L126">                emp.first_name = rset.getString(&quot;employees.first_name&quot;);</span>
-<span class="nc" id="L127">                emp.last_name = rset.getString(&quot;employees.last_name&quot;);</span>
-<span class="nc" id="L128">                emp.title = rset.getString(&quot;titles.title&quot;);</span>
-<span class="nc" id="L129">                emp.salary = rset.getInt(&quot;salaries.salary&quot;);</span>
-<span class="nc" id="L130">                employees.add(emp);</span>
-<span class="nc" id="L131">            }</span>
-<span class="nc" id="L132">            return employees;</span>
-<span class="nc" id="L133">        } catch (Exception e) {</span>
-<span class="nc" id="L134">            System.out.println(e.getMessage());</span>
-<span class="nc" id="L135">            System.out.println(&quot;Failed to get salary details&quot;);</span>
-<span class="nc" id="L136">            return null;</span>
+    public List&lt;Employee&gt; getSalariesByRole(final String title) {
+<span class="nc bnc" id="L120" title="All 4 branches missed.">        if (title == null || title.isEmpty()) {</span>
+<span class="nc" id="L121">            return new ArrayList&lt;&gt;();</span>
         }
+
+<span class="nc" id="L124">        final String query =</span>
+                &quot;SELECT employees.emp_no, employees.first_name, employees.last_name, &quot;
+                        + &quot;salaries.salary, titles.title &quot;
+                        + &quot;FROM employees, salaries, titles &quot;
+                        + &quot;WHERE employees.emp_no = salaries.emp_no &quot;
+                        + &quot;AND employees.emp_no = titles.emp_no &quot;
+                        + &quot;AND salaries.to_date = '9999-01-01' &quot;
+                        + &quot;AND titles.to_date = '9999-01-01' &quot;
+                        + &quot;AND titles.title = '&quot; + title + &quot;' &quot;
+                        + &quot;ORDER BY employees.emp_no ASC&quot;;
+
+<span class="nc" id="L135">        final List&lt;Employee&gt; employees = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L137">        try (Statement stmt = this.con.createStatement();</span>
+<span class="nc" id="L138">             ResultSet rset = stmt.executeQuery(query)) {</span>
+
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            while (rset.next()) {</span>
+<span class="nc" id="L141">                final Employee emp = createEmployeeFromResultSet(rset,</span>
+                        &quot;employees.emp_no&quot;, &quot;employees.first_name&quot;, &quot;employees.last_name&quot;, &quot;salaries.salary&quot;);
+<span class="nc" id="L143">                emp.setTitle(rset.getString(&quot;titles.title&quot;));</span>
+<span class="nc" id="L144">                employees.add(emp);</span>
+<span class="nc" id="L145">            }</span>
+<span class="nc" id="L146">        } catch (SQLException e) {</span>
+<span class="nc" id="L147">            LOGGER.log(Level.SEVERE, &quot;Failed to get salary details&quot;, e);</span>
+<span class="nc" id="L148">        }</span>
+
+<span class="nc" id="L150">        return employees;</span>
     }
 
     /**
      * Gets a department by name
      *
-     * @param dept_name the department name to search for
+     * @param deptName the department name to search for
      * @return Department object or null if not found
      */
-    public Department getDepartment(String dept_name) {
-        try {
-            // Create an SQL statement
-<span class="fc" id="L149">            Statement stmt = con.createStatement();</span>
-            // Create string for SQL statement
-<span class="fc" id="L151">            String strSelect =</span>
-                    &quot;SELECT dept_no, dept_name &quot;
-                            + &quot;FROM departments &quot;
-                            + &quot;WHERE dept_name = '&quot; + dept_name + &quot;'&quot;;
-            // Execute SQL statement
-<span class="fc" id="L156">            ResultSet rset = stmt.executeQuery(strSelect);</span>
-            // Check one is returned
-<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            if (rset.next()) {</span>
-<span class="fc" id="L159">                Department dept = new Department();</span>
-<span class="fc" id="L160">                dept.dept_no = rset.getString(&quot;dept_no&quot;);</span>
-<span class="fc" id="L161">                dept.dept_name = rset.getString(&quot;dept_name&quot;);</span>
-<span class="fc" id="L162">                return dept;</span>
-            } else
-<span class="nc" id="L164">                return null;</span>
-<span class="nc" id="L165">        } catch (Exception e) {</span>
-<span class="nc" id="L166">            System.out.println(e.getMessage());</span>
-<span class="nc" id="L167">            System.out.println(&quot;Failed to get department details&quot;);</span>
-<span class="nc" id="L168">            return null;</span>
+    public Department getDepartment(final String deptName) {
+<span class="pc bpc" id="L160" title="2 of 4 branches missed.">        if (deptName == null || deptName.isEmpty()) {</span>
+<span class="nc" id="L161">            return null;</span>
         }
+
+<span class="fc" id="L164">        final String query =</span>
+                &quot;SELECT dept_no, dept_name &quot;
+                        + &quot;FROM departments &quot;
+                        + &quot;WHERE dept_name = '&quot; + deptName + &quot;'&quot;;
+
+<span class="fc" id="L169">        Department result = null;</span>
+
+<span class="fc" id="L171">        try (Statement stmt = this.con.createStatement();</span>
+<span class="fc" id="L172">             ResultSet rset = stmt.executeQuery(query)) {</span>
+
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">            if (rset.next()) {</span>
+<span class="fc" id="L175">                final Department dept = new Department();</span>
+<span class="fc" id="L176">                dept.setDeptNo(rset.getString(&quot;dept_no&quot;));</span>
+<span class="fc" id="L177">                dept.setDeptName(rset.getString(&quot;dept_name&quot;));</span>
+<span class="fc" id="L178">                result = dept;</span>
+            }
+<span class="nc" id="L180">        } catch (SQLException e) {</span>
+<span class="nc" id="L181">            LOGGER.log(Level.SEVERE, &quot;Failed to get department details&quot;, e);</span>
+<span class="fc" id="L182">        }</span>
+
+<span class="fc" id="L184">        return result;</span>
     }
 
     /**
@@ -175,68 +190,67 @@ import java.util.ArrayList;
      * @param dept the department to get employees for
      * @return list of employees in the department
      */
-    public ArrayList&lt;Employee&gt; getSalariesByDepartment(Department dept) {
-        try {
-            // Create an SQL statement
-<span class="nc" id="L181">            Statement stmt = con.createStatement();</span>
-            // Create string for SQL statement
-<span class="nc" id="L183">            String strSelect =</span>
-                    &quot;SELECT employees.emp_no, employees.first_name, employees.last_name, salaries.salary &quot;
-                            + &quot;FROM employees, salaries, dept_emp, departments &quot;
-                            + &quot;WHERE employees.emp_no = salaries.emp_no &quot;
-                            + &quot;AND employees.emp_no = dept_emp.emp_no &quot;
-                            + &quot;AND dept_emp.dept_no = departments.dept_no &quot;
-                            + &quot;AND salaries.to_date = '9999-01-01' &quot;
-                            + &quot;AND departments.dept_no = '&quot; + dept.dept_no + &quot;' &quot;
-                            + &quot;ORDER BY employees.emp_no ASC&quot;;
-            // Execute SQL statement
-<span class="nc" id="L193">            ResultSet rset = stmt.executeQuery(strSelect);</span>
-            // Extract employee information
-<span class="nc" id="L195">            ArrayList&lt;Employee&gt; employees = new ArrayList&lt;Employee&gt;();</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">            while (rset.next()) {</span>
-<span class="nc" id="L197">                Employee emp = new Employee();</span>
-<span class="nc" id="L198">                emp.emp_no = rset.getInt(&quot;employees.emp_no&quot;);</span>
-<span class="nc" id="L199">                emp.first_name = rset.getString(&quot;employees.first_name&quot;);</span>
-<span class="nc" id="L200">                emp.last_name = rset.getString(&quot;employees.last_name&quot;);</span>
-<span class="nc" id="L201">                emp.salary = rset.getInt(&quot;salaries.salary&quot;);</span>
-<span class="nc" id="L202">                employees.add(emp);</span>
-<span class="nc" id="L203">            }</span>
-<span class="nc" id="L204">            return employees;</span>
-<span class="nc" id="L205">        } catch (Exception e) {</span>
-<span class="nc" id="L206">            System.out.println(e.getMessage());</span>
-<span class="nc" id="L207">            System.out.println(&quot;Failed to get salary details&quot;);</span>
-<span class="nc" id="L208">            return null;</span>
+    public List&lt;Employee&gt; getSalariesByDepartment(final Department dept) {
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (dept == null) {</span>
+<span class="nc" id="L195">            return new ArrayList&lt;&gt;();</span>
         }
+
+<span class="nc" id="L198">        final String query =</span>
+                &quot;SELECT employees.emp_no, employees.first_name, employees.last_name, salaries.salary &quot;
+                        + &quot;FROM employees, salaries, dept_emp, departments &quot;
+                        + &quot;WHERE employees.emp_no = salaries.emp_no &quot;
+                        + &quot;AND employees.emp_no = dept_emp.emp_no &quot;
+                        + &quot;AND dept_emp.dept_no = departments.dept_no &quot;
+                        + &quot;AND salaries.to_date = '9999-01-01' &quot;
+<span class="nc" id="L205">                        + &quot;AND departments.dept_no = '&quot; + dept.getDeptNo() + &quot;' &quot;</span>
+                        + &quot;ORDER BY employees.emp_no ASC&quot;;
+
+<span class="nc" id="L208">        final List&lt;Employee&gt; employees = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L210">        try (Statement stmt = this.con.createStatement();</span>
+<span class="nc" id="L211">             ResultSet rset = stmt.executeQuery(query)) {</span>
+
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            while (rset.next()) {</span>
+<span class="nc" id="L214">                final Employee emp = createEmployeeFromResultSet(rset,</span>
+                        &quot;employees.emp_no&quot;, &quot;employees.first_name&quot;, &quot;employees.last_name&quot;, &quot;salaries.salary&quot;);
+<span class="nc" id="L216">                employees.add(emp);</span>
+<span class="nc" id="L217">            }</span>
+<span class="nc" id="L218">        } catch (SQLException e) {</span>
+<span class="nc" id="L219">            LOGGER.log(Level.SEVERE, &quot;Failed to get salary details&quot;, e);</span>
+<span class="nc" id="L220">        }</span>
+
+<span class="nc" id="L222">        return employees;</span>
     }
 
     /**
      * Gets a single employee by employee number
      *
-     * @param emp_no the employee number
+     * @param empNo the employee number
      * @return Employee object or null if not found
      */
-    public Employee getEmployee(int emp_no) {
-        try {
-<span class="fc" id="L220">            Statement stmt = con.createStatement();</span>
-<span class="fc" id="L221">            String strSelect =</span>
-                    &quot;SELECT emp_no, first_name, last_name &quot;
-                            + &quot;FROM employees &quot;
-                            + &quot;WHERE emp_no = &quot; + emp_no;
-<span class="fc" id="L225">            ResultSet rset = stmt.executeQuery(strSelect);</span>
-<span class="pc bpc" id="L226" title="1 of 2 branches missed.">            if (rset.next()) {</span>
-<span class="fc" id="L227">                Employee emp = new Employee();</span>
-<span class="fc" id="L228">                emp.emp_no = rset.getInt(&quot;emp_no&quot;);</span>
-<span class="fc" id="L229">                emp.first_name = rset.getString(&quot;first_name&quot;);</span>
-<span class="fc" id="L230">                emp.last_name = rset.getString(&quot;last_name&quot;);</span>
-<span class="fc" id="L231">                return emp;</span>
-            } else {
-<span class="nc" id="L233">                return null;</span>
+    public Employee getEmployee(final int empNo) {
+<span class="fc" id="L232">        final String query =</span>
+                &quot;SELECT emp_no, first_name, last_name &quot;
+                        + &quot;FROM employees &quot;
+                        + &quot;WHERE emp_no = &quot; + empNo;
+
+<span class="fc" id="L237">        Employee result = null;</span>
+
+<span class="fc" id="L239">        try (Statement stmt = this.con.createStatement();</span>
+<span class="fc" id="L240">             ResultSet rset = stmt.executeQuery(query)) {</span>
+
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">            if (rset.next()) {</span>
+<span class="fc" id="L243">                final Employee emp = new Employee();</span>
+<span class="fc" id="L244">                emp.setEmpNo(rset.getInt(&quot;emp_no&quot;));</span>
+<span class="fc" id="L245">                emp.setFirstName(rset.getString(&quot;first_name&quot;));</span>
+<span class="fc" id="L246">                emp.setLastName(rset.getString(&quot;last_name&quot;));</span>
+<span class="fc" id="L247">                result = emp;</span>
             }
-<span class="nc" id="L235">        } catch (Exception e) {</span>
-<span class="nc" id="L236">            System.out.println(e.getMessage());</span>
-<span class="nc" id="L237">            System.out.println(&quot;Failed to get employee details&quot;);</span>
-<span class="nc" id="L238">            return null;</span>
-        }
+<span class="nc" id="L249">        } catch (SQLException e) {</span>
+<span class="nc" id="L250">            LOGGER.log(Level.SEVERE, &quot;Failed to get employee details&quot;, e);</span>
+<span class="fc" id="L251">        }</span>
+
+<span class="fc" id="L253">        return result;</span>
     }
 
     /**
@@ -244,32 +258,56 @@ import java.util.ArrayList;
      *
      * @param emp the employee to add
      */
-    public void addEmployee(Employee emp) {
-        try {
-<span class="nc" id="L249">            Statement stmt = con.createStatement();</span>
-<span class="nc" id="L250">            String strUpdate =</span>
-                    &quot;INSERT INTO employees (emp_no, first_name, last_name, birth_date, gender, hire_date) &quot; +
-                            &quot;VALUES (&quot; + emp.emp_no + &quot;, '&quot; + emp.first_name + &quot;', '&quot; + emp.last_name + &quot;', &quot; +
-                            &quot;'9999-01-01', 'M', '9999-01-01')&quot;;
-<span class="nc" id="L254">            stmt.execute(strUpdate);</span>
-<span class="nc" id="L255">        } catch (Exception e) {</span>
-<span class="nc" id="L256">            System.out.println(e.getMessage());</span>
-<span class="nc" id="L257">            System.out.println(&quot;Failed to add employee&quot;);</span>
-<span class="nc" id="L258">        }</span>
-<span class="nc" id="L259">    }</span>
+    public void addEmployee(final Employee emp) {
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (emp == null) {</span>
+<span class="nc" id="L263">            return;</span>
+        }
+
+<span class="nc" id="L266">        final String query =</span>
+                &quot;INSERT INTO employees (emp_no, first_name, last_name, birth_date, gender, hire_date) &quot; +
+<span class="nc" id="L268">                        &quot;VALUES (&quot; + emp.getEmpNo() + &quot;, '&quot; + emp.getFirstName() + &quot;', '&quot;</span>
+<span class="nc" id="L269">                        + emp.getLastName() + &quot;', '9999-01-01', 'M', '9999-01-01')&quot;;</span>
+
+<span class="nc" id="L271">        try (Statement stmt = this.con.createStatement()) {</span>
+<span class="nc" id="L272">            stmt.execute(query);</span>
+<span class="nc" id="L273">        } catch (SQLException e) {</span>
+<span class="nc" id="L274">            LOGGER.log(Level.SEVERE, &quot;Failed to add employee&quot;, e);</span>
+<span class="nc" id="L275">        }</span>
+<span class="nc" id="L276">    }</span>
 
     /**
      * Gets salaries by department name (convenience method)
      *
-     * @param dept_name the department name
+     * @param deptName the department name
      * @return list of employees in the department
      */
-    public ArrayList&lt;Employee&gt; getSalariesByDept(String dept_name) {
-<span class="nc" id="L268">        Department dept = getDepartment(dept_name);</span>
-<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (dept == null) {</span>
-<span class="nc" id="L270">            return null;</span>
+    public List&lt;Employee&gt; getSalariesByDept(final String deptName) {
+<span class="nc" id="L285">        final Department dept = getDepartment(deptName);</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (dept == null) {</span>
+<span class="nc" id="L287">            return new ArrayList&lt;&gt;();</span>
         }
-<span class="nc" id="L272">        return getSalariesByDepartment(dept);</span>
+<span class="nc" id="L289">        return getSalariesByDepartment(dept);</span>
+    }
+
+    /**
+     * Creates an Employee from a ResultSet
+     * @param rset the result set
+     * @param empNoCol employee number column name
+     * @param firstNameCol first name column name
+     * @param lastNameCol last name column name
+     * @param salaryCol salary column name
+     * @return created Employee object
+     * @throws SQLException if database access error occurs
+     */
+    private Employee createEmployeeFromResultSet(final ResultSet rset,
+                                                 final String empNoCol, final String firstNameCol,
+                                                 final String lastNameCol, final String salaryCol) throws SQLException {
+<span class="nc" id="L305">        final Employee emp = new Employee();</span>
+<span class="nc" id="L306">        emp.setEmpNo(rset.getInt(empNoCol));</span>
+<span class="nc" id="L307">        emp.setFirstName(rset.getString(firstNameCol));</span>
+<span class="nc" id="L308">        emp.setLastName(rset.getString(lastNameCol));</span>
+<span class="nc" id="L309">        emp.setSalary(rset.getInt(salaryCol));</span>
+<span class="nc" id="L310">        return emp;</span>
     }
 
     /**
@@ -277,93 +315,96 @@ import java.util.ArrayList;
      *
      * @param employees The list of employees to print.
      */
-    public void printSalaries(ArrayList&lt;Employee&gt; employees)
-    {
-        // Check employees is not null
-<span class="fc bfc" id="L283" title="All 2 branches covered.">        if (employees == null)</span>
-        {
-<span class="fc" id="L285">            System.out.println(&quot;No employees&quot;);</span>
-<span class="fc" id="L286">            return;</span>
+    @SuppressWarnings(&quot;PMD.SystemPrintln&quot;)
+    public void printSalaries(final List&lt;Employee&gt; employees) {
+<span class="fc bfc" id="L320" title="All 4 branches covered.">        if (employees == null || employees.isEmpty()) {</span>
+<span class="fc" id="L321">            System.out.println(&quot;No employees&quot;);</span>
+<span class="fc" id="L322">            return;</span>
         }
-        // Print header
-<span class="fc" id="L289">        System.out.println(String.format(&quot;%-10s %-15s %-20s %-8s&quot;, &quot;Emp No&quot;, &quot;First Name&quot;, &quot;Last Name&quot;, &quot;Salary&quot;));</span>
-        // Loop over all employees in the list
-<span class="fc bfc" id="L291" title="All 2 branches covered.">        for (Employee emp : employees)</span>
-        {
-<span class="fc bfc" id="L293" title="All 2 branches covered.">            if (emp == null)</span>
-<span class="fc" id="L294">                continue;</span>
-<span class="fc" id="L295">            String emp_string =</span>
-<span class="fc" id="L296">                    String.format(&quot;%-10s %-15s %-20s %-8s&quot;,</span>
-<span class="fc" id="L297">                            emp.emp_no, emp.first_name, emp.last_name, emp.salary);</span>
-<span class="fc" id="L298">            System.out.println(emp_string);</span>
-<span class="fc" id="L299">        }</span>
-<span class="fc" id="L300">    }</span>
+
+<span class="fc" id="L325">        final String headerFormat = &quot;%-10s %-15s %-20s %-8s&quot;;</span>
+<span class="fc" id="L326">        System.out.println(String.format(headerFormat,</span>
+                &quot;Emp No&quot;, &quot;First Name&quot;, &quot;Last Name&quot;, &quot;Salary&quot;));
+
+<span class="fc bfc" id="L329" title="All 2 branches covered.">        for (final Employee emp : employees) {</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">            if (emp != null) {</span>
+<span class="fc" id="L331">                final String empFormat = &quot;%-10s %-15s %-20s %-8s&quot;;</span>
+<span class="fc" id="L332">                final String empString = String.format(empFormat,</span>
+<span class="fc" id="L333">                        emp.getEmpNo(), emp.getFirstName(), emp.getLastName(), emp.getSalary());</span>
+<span class="fc" id="L334">                System.out.println(empString);</span>
+            }
+<span class="fc" id="L336">        }</span>
+<span class="fc" id="L337">    }</span>
 
     /**
      * Prints employee details
      *
      * @param emp Employee to display
      */
-    public void displayEmployee(Employee emp)
-    {
-<span class="fc bfc" id="L309" title="All 2 branches covered.">        if (emp != null)</span>
-        {
-<span class="fc" id="L311">            System.out.println(emp.emp_no + &quot; &quot;</span>
-                    + emp.first_name + &quot; &quot;
-                    + emp.last_name + &quot;\n&quot;
-                    + emp.title + &quot;\n&quot;
-                    + &quot;Salary:&quot; + emp.salary + &quot;\n&quot;);
-
-            // Check if department exists before accessing it
-<span class="pc bpc" id="L318" title="1 of 2 branches missed.">            if (emp.dept != null)</span>
-            {
-<span class="nc" id="L320">                System.out.println(emp.dept.dept_name + &quot;\n&quot;);</span>
-            }
-            else
-            {
-<span class="fc" id="L324">                System.out.println(&quot;No department assigned\n&quot;);</span>
-            }
-
-            // Check if manager exists before accessing it
-<span class="pc bpc" id="L328" title="1 of 2 branches missed.">            if (emp.manager != null)</span>
-            {
-<span class="nc" id="L330">                System.out.println(&quot;Manager: &quot; + emp.manager.first_name + &quot; &quot; + emp.manager.last_name + &quot;\n&quot;);</span>
-            }
-            else
-            {
-<span class="fc" id="L334">                System.out.println(&quot;No manager assigned\n&quot;);</span>
-            }
+    @SuppressWarnings(&quot;PMD.SystemPrintln&quot;)
+    public void displayEmployee(final Employee emp) {
+<span class="fc bfc" id="L346" title="All 2 branches covered.">        if (emp == null) {</span>
+<span class="fc" id="L347">            System.out.println(&quot;No employee provided&quot;);</span>
+<span class="fc" id="L348">            return;</span>
         }
-        else
-        {
-<span class="fc" id="L339">            System.out.println(&quot;No employee provided&quot;);</span>
-        }
-<span class="fc" id="L341">    }</span>
 
-    public static void main(String[] args) {
-<span class="nc" id="L344">        App app = new App();</span>
+<span class="fc" id="L351">        final StringBuilder output = new StringBuilder();</span>
+<span class="fc" id="L352">        output.append(emp.getEmpNo()).append(&quot; &quot;)</span>
+<span class="fc" id="L353">                .append(emp.getFirstName()).append(&quot; &quot;)</span>
+<span class="fc" id="L354">                .append(emp.getLastName()).append(&quot;\n&quot;)</span>
+<span class="fc" id="L355">                .append(emp.getTitle()).append(&quot;\n&quot;)</span>
+<span class="fc" id="L356">                .append(&quot;Salary:&quot;).append(emp.getSalary()).append(&quot;\n&quot;);</span>
 
-<span class="nc bnc" id="L346" title="All 2 branches missed.">        if (args.length &lt; 1) {</span>
-<span class="nc" id="L347">            app.connect(&quot;localhost:33060&quot;, 30000);</span>
+<span class="fc" id="L358">        final Department empDept = emp.getDept();</span>
+<span class="pc bpc" id="L359" title="1 of 2 branches missed.">        if (empDept != null) {</span>
+<span class="nc" id="L360">            output.append(empDept.getDeptName()).append(&quot;\n&quot;);</span>
         } else {
-<span class="nc" id="L349">            app.connect(args[0], Integer.parseInt(args[1]));</span>
+<span class="fc" id="L362">            output.append(&quot;No department assigned\n&quot;);</span>
         }
 
-<span class="nc" id="L352">        Department dept = app.getDepartment(&quot;Sales&quot;);</span>
-<span class="nc bnc" id="L353" title="All 2 branches missed.">        if (dept != null) {</span>
-<span class="nc" id="L354">            ArrayList&lt;Employee&gt; employees = app.getSalariesByDepartment(dept);</span>
-<span class="nc bnc" id="L355" title="All 4 branches missed.">            if (employees != null &amp;&amp; !employees.isEmpty()) {</span>
-<span class="nc" id="L356">                System.out.println(&quot;Sales Department - First 5 employees:&quot;);</span>
-<span class="nc" id="L357">                ArrayList&lt;Employee&gt; sample = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L358" title="All 2 branches missed.">                for (int i = 0; i &lt; Math.min(5, employees.size()); i++) {</span>
-<span class="nc" id="L359">                    sample.add(employees.get(i));</span>
+<span class="fc" id="L365">        final Employee empManager = emp.getManager();</span>
+<span class="pc bpc" id="L366" title="1 of 2 branches missed.">        if (empManager != null) {</span>
+<span class="nc" id="L367">            output.append(&quot;Manager: &quot;).append(empManager.getFirstName())</span>
+<span class="nc" id="L368">                    .append(&quot; &quot;).append(empManager.getLastName()).append(&quot;\n&quot;);</span>
+        } else {
+<span class="fc" id="L370">            output.append(&quot;No manager assigned\n&quot;);</span>
+        }
+
+<span class="fc" id="L373">        System.out.println(output.toString());</span>
+<span class="fc" id="L374">    }</span>
+
+    /**
+     * Main method
+     * @param args command line arguments
+     */
+    @SuppressWarnings(&quot;PMD.SystemPrintln&quot;)
+    public static void main(final String[] args) {
+<span class="nc" id="L382">        final App application = new App();</span>
+<span class="nc" id="L383">        final int defaultDelay = 30000;</span>
+<span class="nc" id="L384">        final int maxSampleSize = 5;</span>
+
+<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (args.length &lt; 1) {</span>
+<span class="nc" id="L387">            application.connect(&quot;localhost:33060&quot;, defaultDelay);</span>
+        } else {
+<span class="nc" id="L389">            application.connect(args[0], Integer.parseInt(args[1]));</span>
+        }
+
+<span class="nc" id="L392">        final Department dept = application.getDepartment(&quot;Sales&quot;);</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">        if (dept != null) {</span>
+<span class="nc" id="L394">            final List&lt;Employee&gt; employees = application.getSalariesByDepartment(dept);</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">            if (!employees.isEmpty()) {</span>
+<span class="nc" id="L396">                System.out.println(&quot;Sales Department - First 5 employees:&quot;);</span>
+<span class="nc" id="L397">                final List&lt;Employee&gt; sample = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L398">                final int limit = Math.min(maxSampleSize, employees.size());</span>
+<span class="nc bnc" id="L399" title="All 2 branches missed.">                for (int i = 0; i &lt; limit; i++) {</span>
+<span class="nc" id="L400">                    sample.add(employees.get(i));</span>
                 }
-<span class="nc" id="L361">                app.printSalaries(sample);</span>
+<span class="nc" id="L402">                application.printSalaries(sample);</span>
             }
         }
 
-<span class="nc" id="L365">        app.disconnect();</span>
-<span class="nc" id="L366">        System.out.println(&quot;Application finished.&quot;);</span>
-<span class="nc" id="L367">    }</span>
+<span class="nc" id="L406">        application.disconnect();</span>
+<span class="nc" id="L407">        System.out.println(&quot;Application finished.&quot;);</span>
+<span class="nc" id="L408">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

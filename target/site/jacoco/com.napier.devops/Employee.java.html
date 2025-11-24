@@ -1,14 +1,203 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Employee.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">devops</a> &gt; <a href="index.source.html" class="el_package">com.napier.devops</a> &gt; <span class="el_source">Employee.java</span></div><h1>Employee.java</h1><pre class="source lang-java linenums">package com.napier.devops;
 
-<span class="fc" id="L3">public class Employee {</span>
-    public int emp_no;
-    public String first_name;
-    public String last_name;
-    public String title;
-    public int salary;
-    public Department dept;
-    public String dept_name;    // fallback if dept object not used
-    public Employee manager;
-    public String managerName;  // fallback if manager object not used
+/**
+ * Represents an employee in the database
+ */
+public final class Employee {
+    /**
+     * Employee number
+     */
+    private int empNo;
+
+    /**
+     * Employee first name
+     */
+    private String firstName;
+
+    /**
+     * Employee last name
+     */
+    private String lastName;
+
+    /**
+     * Employee job title
+     */
+    private String title;
+
+    /**
+     * Employee salary
+     */
+    private int salary;
+
+    /**
+     * Employee department
+     */
+    private Department dept;
+
+    /**
+     * Department name (fallback if dept object not used)
+     */
+    private String deptName;
+
+    /**
+     * Employee manager
+     */
+    private Employee manager;
+
+    /**
+     * Manager name (fallback if manager object not used)
+     */
+    private String managerName;
+
+    /**
+     * Default constructor
+     */
+<span class="fc" id="L55">    public Employee() {</span>
+        // Default constructor
+<span class="fc" id="L57">    }</span>
+
+    /**
+     * Gets employee number
+     * @return employee number
+     */
+    public int getEmpNo() {
+<span class="fc" id="L64">        return this.empNo;</span>
+    }
+
+    /**
+     * Sets employee number
+     * @param empNo employee number
+     */
+    public void setEmpNo(final int empNo) {
+<span class="fc" id="L72">        this.empNo = empNo;</span>
+<span class="fc" id="L73">    }</span>
+
+    /**
+     * Gets first name
+     * @return first name
+     */
+    public String getFirstName() {
+<span class="fc" id="L80">        return this.firstName;</span>
+    }
+
+    /**
+     * Sets first name
+     * @param firstName first name
+     */
+    public void setFirstName(final String firstName) {
+<span class="fc" id="L88">        this.firstName = firstName;</span>
+<span class="fc" id="L89">    }</span>
+
+    /**
+     * Gets last name
+     * @return last name
+     */
+    public String getLastName() {
+<span class="fc" id="L96">        return this.lastName;</span>
+    }
+
+    /**
+     * Sets last name
+     * @param lastName last name
+     */
+    public void setLastName(final String lastName) {
+<span class="fc" id="L104">        this.lastName = lastName;</span>
+<span class="fc" id="L105">    }</span>
+
+    /**
+     * Gets title
+     * @return title
+     */
+    public String getTitle() {
+<span class="fc" id="L112">        return this.title;</span>
+    }
+
+    /**
+     * Sets title
+     * @param title job title
+     */
+    public void setTitle(final String title) {
+<span class="fc" id="L120">        this.title = title;</span>
+<span class="fc" id="L121">    }</span>
+
+    /**
+     * Gets salary
+     * @return salary
+     */
+    public int getSalary() {
+<span class="fc" id="L128">        return this.salary;</span>
+    }
+
+    /**
+     * Sets salary
+     * @param salary salary amount
+     */
+    public void setSalary(final int salary) {
+<span class="fc" id="L136">        this.salary = salary;</span>
+<span class="fc" id="L137">    }</span>
+
+    /**
+     * Gets department
+     * @return department
+     */
+    public Department getDept() {
+<span class="fc" id="L144">        return this.dept;</span>
+    }
+
+    /**
+     * Sets department
+     * @param dept department
+     */
+    public void setDept(final Department dept) {
+<span class="nc" id="L152">        this.dept = dept;</span>
+<span class="nc" id="L153">    }</span>
+
+    /**
+     * Gets department name
+     * @return department name
+     */
+    public String getDeptName() {
+<span class="nc" id="L160">        return this.deptName;</span>
+    }
+
+    /**
+     * Sets department name
+     * @param deptName department name
+     */
+    public void setDeptName(final String deptName) {
+<span class="nc" id="L168">        this.deptName = deptName;</span>
+<span class="nc" id="L169">    }</span>
+
+    /**
+     * Gets manager
+     * @return manager
+     */
+    public Employee getManager() {
+<span class="fc" id="L176">        return this.manager;</span>
+    }
+
+    /**
+     * Sets manager
+     * @param manager manager employee
+     */
+    public void setManager(final Employee manager) {
+<span class="nc" id="L184">        this.manager = manager;</span>
+<span class="nc" id="L185">    }</span>
+
+    /**
+     * Gets manager name
+     * @return manager name
+     */
+    public String getManagerName() {
+<span class="nc" id="L192">        return this.managerName;</span>
+    }
+
+    /**
+     * Sets manager name
+     * @param managerName manager name
+     */
+    public void setManagerName(final String managerName) {
+<span class="nc" id="L200">        this.managerName = managerName;</span>
+<span class="nc" id="L201">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
